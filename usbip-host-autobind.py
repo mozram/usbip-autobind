@@ -54,7 +54,7 @@ def print_device_event(device):
                 print("Unbinding device ", deviceBusId)
                 deviceBindList.remove(deviceBusId)
                 global socketClient
-                socketClient.write(f"Device {deviceBusId} unbinded\n".encode())
+                socketClient.write(f"Device {deviceBusId} removed\n".encode())
         
     # for x in deviceBindList:
     #     print(x)
@@ -74,8 +74,8 @@ async def handle_client(reader, writer):
             break
         print(data)
         #socketClient = writer
-        writer.write(data)
-        await writer.drain()  # Flow control, see later
+        # writer.write(data)
+        # await writer.drain()  # Flow control, see later
     writer.close()
 
 async def run_server():
