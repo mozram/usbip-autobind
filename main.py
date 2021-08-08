@@ -17,18 +17,24 @@ def print_device_event(device):
     devicePath = device.device_path
     # parse into device on
     # First, ignore path with colon
-    if ':' not in devicePath:
+    if ':' in devicePath:
         # Get a deviceBusId out of it.
-        deviceBusId = devicePath.rpartition('/')[-1]
+        deviceBusId = devicePath.split('/')[-2]
         deviceOperation = device.action
         if not any(deviceBusId in s for s in deviceBindList):
             if deviceOperation == 'bind':
                 print("Binding device ", deviceBusId)
                 deviceBindList.append(deviceBusId)
-                # Bind to USBIP. Known issue: when bind with usbip, device will unbind first, then bind again. This cause error since this command will need to run again
+                # Bind to USBIP
+                # Known issue: when bind with usbip, device will unbind first, then bind again. This cause error since this command will need to run again
+                # Fix: Bind with colon, unbind without
                 bind_device(deviceBusId)
-        else:
-            if deviceOperation == 'unbind':
+    else:
+        # Get a deviceBusId out of it.
+        deviceBusId = devicePath.split('/')[-1]
+        deviceOperation = device.action
+        if any(deviceBusId in s for s in deviceBindList):
+            if deviceOperation == 'remove':
                 print("Unbinding device ", deviceBusId)
                 deviceBindList.remove(deviceBusId)
         
