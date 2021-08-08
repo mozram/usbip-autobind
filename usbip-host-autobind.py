@@ -1,9 +1,18 @@
+#!/usr/bin/env python3
+
 from pyudev import Context, Monitor, MonitorObserver
 import time
 import subprocess
+import socket, asyncio
+
+SOCKET_HOST = '0.0.0.0'
+SOCKET_PORT = 65432
 
 # Create dictionary whether device already bind or not
 deviceBindList = []
+
+# Socket user
+socketClient = None
 
 context = Context()
 monitor = Monitor.from_netlink(context)
@@ -11,6 +20,8 @@ monitor.filter_by(subsystem='usb')
 
 def bind_device(device):
     subprocess.run(["usbip", "bind", "-b", device])
+    # Play buzzer
+    socketClient.write("Device ", device, " binded")
 
 def print_device_event(device):
     print('>>> background event {0.action}: {0.device_path}'.format(device))
@@ -41,10 +52,30 @@ def print_device_event(device):
     # for x in deviceBindList:
     #     print(x)
 
-
 observer = MonitorObserver(monitor, callback=print_device_event, name='monitor-observer')
 observer.daemon
 observer.start()
+
+## Socket notification part
+async def handle_client(reader, writer):
+    print("Client callback!")
+    while True:
+        data = await reader.read(100)  # Max number of bytes to read
+        if not data:
+            break
+        print(data)
+        socketClient = writer
+        writer.write(data)
+        await writer.drain()  # Flow control, see later
+    writer.close()
+
+async def run_server():
+    server = await asyncio.start_server(handle_client, SOCKET_HOST, SOCKET_PORT)
+    print("Starting socket server...")
+    async with server:
+        await server.serve_forever()
+
+asyncio.run(run_server())
 
 while True:
     time.sleep(1)
