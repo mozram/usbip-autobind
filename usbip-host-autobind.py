@@ -12,7 +12,7 @@ SOCKET_PORT = 65432
 deviceBindList = []
 
 # Socket user
-global socketClient
+socketClient = None
 
 context = Context()
 monitor = Monitor.from_netlink(context)
@@ -21,7 +21,12 @@ monitor.filter_by(subsystem='usb')
 def bind_device(device):
     subprocess.run(["usbip", "bind", "-b", device])
     # Play buzzer
-    socketClient.write("Device ", device, " binded")
+    try:
+        global socketClient
+        socketClient.write(f"Device {device} binded\n".encode())
+        # socketClient.drain()
+    except:
+        pass
 
 def print_device_event(device):
     print('>>> background event {0.action}: {0.device_path}'.format(device))
@@ -48,6 +53,8 @@ def print_device_event(device):
             if deviceOperation == 'remove':
                 print("Unbinding device ", deviceBusId)
                 deviceBindList.remove(deviceBusId)
+                global socketClient
+                socketClient.write(f"Device {deviceBusId} unbinded\n".encode())
         
     # for x in deviceBindList:
     #     print(x)
@@ -59,6 +66,7 @@ observer.start()
 ## Socket notification part
 async def handle_client(reader, writer):
     print("Client callback!")
+    global socketClient
     socketClient = writer
     while True:
         data = await reader.read(100)  # Max number of bytes to read
