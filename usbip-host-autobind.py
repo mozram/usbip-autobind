@@ -12,7 +12,7 @@ SOCKET_PORT = 65432
 deviceBindList = []
 
 # Socket user
-socketClient = None
+global socketClient
 
 context = Context()
 monitor = Monitor.from_netlink(context)
@@ -59,12 +59,13 @@ observer.start()
 ## Socket notification part
 async def handle_client(reader, writer):
     print("Client callback!")
+    socketClient = writer
     while True:
         data = await reader.read(100)  # Max number of bytes to read
         if not data:
             break
         print(data)
-        socketClient = writer
+        #socketClient = writer
         writer.write(data)
         await writer.drain()  # Flow control, see later
     writer.close()
