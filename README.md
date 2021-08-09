@@ -201,3 +201,5 @@ https://gist.github.com/cerebrate/d40c89d3fa89594e1b1538b2ce9d2720
 https://falco.org/blog/falco-wsl2-custom-kernel/
 
 https://github.com/rpasek/usbip-wsl2-instructions
+
+https://wiki.archlinux.org/title/USB/IP
